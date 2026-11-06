@@ -63,8 +63,8 @@ paths would be visible to everyone. Use a private repository.
 1. GitHub → **Settings → Developer settings → Personal access tokens → Fine-grained tokens →
    Generate new token**.
 2. **Resource owner:** the account or organisation that owns the repository.
-3. **Repository access:** *Only select repositories* → pick the **one** repository.
-4. **Permissions → Repository permissions:** **Issues: Read and write**. *Metadata: Read-only* is
+3. **Repository access:** _Only select repositories_ → pick the **one** repository.
+4. **Permissions → Repository permissions:** **Issues: Read and write**. _Metadata: Read-only_ is
    added automatically. Nothing else.
 5. Pick an expiry, generate, and paste it into the server's environment as `LOG_ISSUES_TOKEN`.
    Never commit it. `log-issues:test` never prints it.
@@ -83,11 +83,11 @@ Every new issue ends with an **Agent brief** (configurable) that starts with the
 
 `LOG_ISSUES_MENTION_ON` controls when the mention is written:
 
-| value | mention written on |
-|---|---|
-| `new` (default) | issue creation only |
-| `milestone` | issue creation and milestone comments (10, 100, 1000 … occurrences) |
-| `never` | nowhere (the brief stays, without the mention) |
+| value           | mention written on                                                  |
+| --------------- | ------------------------------------------------------------------- |
+| `new` (default) | issue creation only                                                 |
+| `milestone`     | issue creation and milestone comments (10, 100, 1000 … occurrences) |
+| `never`         | nowhere (the brief stays, without the mention)                      |
 
 Regular "seen N more times" comments and the automatic reopen comment never mention anyone.
 Use `LOG_ISSUES_ON_CLOSED=new` if a regression should create a fresh issue (and trigger the agent again).
@@ -161,26 +161,26 @@ The link ref is `LOG_ISSUES_RELEASE` / `APP_RELEASE` when it is a commit SHA, el
 
 ## How deduplication and noise control work
 
-| mechanism | default | env |
-|---|---|---|
-| Fingerprint | class + normalized message + first app frame `path:function` | context key `fingerprint` overrides |
-| Known issue | cache, then GitHub search for the marker (search API: 30 req/min) | `LOG_ISSUES_CACHE_STORE` |
-| Comments | at 10, 100, 1000 … occurrences, else at most once per cooldown | `LOG_ISSUES_COMMENT_COOLDOWN=60` |
-| New issues | at most N per hour; over the cap errors are only counted | `LOG_ISSUES_MAX_NEW_PER_HOUR=10` |
-| Closed issue comes back | `reopen` · `new` (links the old one) · `ignore` | `LOG_ISSUES_ON_CLOSED=reopen` |
-| Circuit breaker | 5 consecutive GitHub failures → pause 15 min; `403/429` rate limits honour `Retry-After` / `X-RateLimit-Reset` | — |
-| Sampling | report a share of matching records | `LOG_ISSUES_SAMPLE_RATE=1.0` |
-| Ignored | `NotFoundHttpException`, `ModelNotFoundException`, `ValidationException`, `AuthenticationException`, `AuthorizationException`, `TokenMismatchException`, `ThrottleRequestsException`, `MethodNotAllowedHttpException` + `ignore_messages` regexes | published config |
+| mechanism               | default                                                                                                                                                                                                                                           | env                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Fingerprint             | class + normalized message + first app frame `path:function`                                                                                                                                                                                      | context key `fingerprint` overrides |
+| Known issue             | cache, then GitHub search for the marker (search API: 30 req/min)                                                                                                                                                                                 | `LOG_ISSUES_CACHE_STORE`            |
+| Comments                | at 10, 100, 1000 … occurrences, else at most once per cooldown                                                                                                                                                                                    | `LOG_ISSUES_COMMENT_COOLDOWN=60`    |
+| New issues              | at most N per hour; over the cap errors are only counted                                                                                                                                                                                          | `LOG_ISSUES_MAX_NEW_PER_HOUR=10`    |
+| Closed issue comes back | `reopen` · `new` (links the old one) · `ignore`                                                                                                                                                                                                   | `LOG_ISSUES_ON_CLOSED=reopen`       |
+| Circuit breaker         | 5 consecutive GitHub failures → pause 15 min; `403/429` rate limits honour `Retry-After` / `X-RateLimit-Reset`                                                                                                                                    | —                                   |
+| Sampling                | report a share of matching records                                                                                                                                                                                                                | `LOG_ISSUES_SAMPLE_RATE=1.0`        |
+| Ignored                 | `NotFoundHttpException`, `ModelNotFoundException`, `ValidationException`, `AuthenticationException`, `AuthorizationException`, `TokenMismatchException`, `ThrottleRequestsException`, `MethodNotAllowedHttpException` + `ignore_messages` regexes | published config                    |
 
 Counters live in your cache for 30 days. A cache flush only costs one search request per error.
 
 ## Delivery
 
-| situation | how the report is sent |
-|---|---|
+| situation                                                               | how the report is sent                                              |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | `LOG_ISSUES_QUEUE=true` (default connection) or `=redis` (a connection) | queued `ReportToGitHub` job (`LOG_ISSUES_QUEUE_NAME` for the queue) |
-| web request, no queue | after the response is sent (`terminating`) |
-| CLI / worker, no queue | synchronously with a 5 s timeout (`LOG_ISSUES_TIMEOUT`) |
+| web request, no queue                                                   | after the response is sent (`terminating`)                          |
+| CLI / worker, no queue                                                  | synchronously with a 5 s timeout (`LOG_ISSUES_TIMEOUT`)             |
 
 The job never throws, so a worker never logs a failure back into the package.
 
@@ -210,27 +210,27 @@ php artisan log-issues:status [--reset]
 
 All keys live in `config/log-issues.php`; most have an env variable:
 
-| key | env | default |
-|---|---|---|
-| `enabled` | `LOG_ISSUES_ENABLED` | `true` |
-| `repo` / `token` | `LOG_ISSUES_REPO` / `LOG_ISSUES_TOKEN` | — |
-| `api_url` / `web_url` | `LOG_ISSUES_API_URL` / `LOG_ISSUES_WEB_URL` | `https://api.github.com` / `https://github.com` (GitHub Enterprise) |
-| `level` | `LOG_ISSUES_LEVEL` | `error` |
-| `environments` | `LOG_ISSUES_ENVIRONMENTS` (comma list, `*` = all) | `production,staging` |
-| `labels` / `severity_label` | `LOG_ISSUES_LABELS` / `LOG_ISSUES_SEVERITY_LABEL` | `bug,auto-reported` / `true` |
-| `mention` / `mention_on` / `agent_brief` | `LOG_ISSUES_MENTION` / `LOG_ISSUES_MENTION_ON` / `LOG_ISSUES_AGENT_BRIEF` | `''` / `new` / see above |
-| `queue` | `LOG_ISSUES_QUEUE`, `LOG_ISSUES_QUEUE_NAME` | `false` |
-| `timeout_seconds` / `retries` | `LOG_ISSUES_TIMEOUT` / `LOG_ISSUES_RETRIES` | `5` / `2` |
-| `max_new_issues_per_hour` | `LOG_ISSUES_MAX_NEW_PER_HOUR` | `10` |
-| `comment_cooldown_minutes` | `LOG_ISSUES_COMMENT_COOLDOWN` | `60` |
-| `milestones` | — | `[10, 100, 1000, 10000, 100000]` |
-| `on_closed` | `LOG_ISSUES_ON_CLOSED` | `reopen` |
-| `sample_rate` | `LOG_ISSUES_SAMPLE_RATE` | `1.0` |
-| `ignore_exceptions` / `ignore_messages` | — | see above / `[]` |
-| `redact.keys` / `redact.patterns` / `redact.max_string_length` | — | `[]` / `[]` / `1000` |
-| `release` / `branch` | `LOG_ISSUES_RELEASE` (or `APP_RELEASE`) / `LOG_ISSUES_BRANCH` | — / `main` |
-| `base_path` | — | `base_path()` |
-| `cache_store` | `LOG_ISSUES_CACHE_STORE` | default store |
+| key                                                            | env                                                                       | default                                                             |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `enabled`                                                      | `LOG_ISSUES_ENABLED`                                                      | `true`                                                              |
+| `repo` / `token`                                               | `LOG_ISSUES_REPO` / `LOG_ISSUES_TOKEN`                                    | —                                                                   |
+| `api_url` / `web_url`                                          | `LOG_ISSUES_API_URL` / `LOG_ISSUES_WEB_URL`                               | `https://api.github.com` / `https://github.com` (GitHub Enterprise) |
+| `level`                                                        | `LOG_ISSUES_LEVEL`                                                        | `error`                                                             |
+| `environments`                                                 | `LOG_ISSUES_ENVIRONMENTS` (comma list, `*` = all)                         | `production,staging`                                                |
+| `labels` / `severity_label`                                    | `LOG_ISSUES_LABELS` / `LOG_ISSUES_SEVERITY_LABEL`                         | `bug,auto-reported` / `true`                                        |
+| `mention` / `mention_on` / `agent_brief`                       | `LOG_ISSUES_MENTION` / `LOG_ISSUES_MENTION_ON` / `LOG_ISSUES_AGENT_BRIEF` | `''` / `new` / see above                                            |
+| `queue`                                                        | `LOG_ISSUES_QUEUE`, `LOG_ISSUES_QUEUE_NAME`                               | `false`                                                             |
+| `timeout_seconds` / `retries`                                  | `LOG_ISSUES_TIMEOUT` / `LOG_ISSUES_RETRIES`                               | `5` / `2`                                                           |
+| `max_new_issues_per_hour`                                      | `LOG_ISSUES_MAX_NEW_PER_HOUR`                                             | `10`                                                                |
+| `comment_cooldown_minutes`                                     | `LOG_ISSUES_COMMENT_COOLDOWN`                                             | `60`                                                                |
+| `milestones`                                                   | —                                                                         | `[10, 100, 1000, 10000, 100000]`                                    |
+| `on_closed`                                                    | `LOG_ISSUES_ON_CLOSED`                                                    | `reopen`                                                            |
+| `sample_rate`                                                  | `LOG_ISSUES_SAMPLE_RATE`                                                  | `1.0`                                                               |
+| `ignore_exceptions` / `ignore_messages`                        | —                                                                         | see above / `[]`                                                    |
+| `redact.keys` / `redact.patterns` / `redact.max_string_length` | —                                                                         | `[]` / `[]` / `1000`                                                |
+| `release` / `branch`                                           | `LOG_ISSUES_RELEASE` (or `APP_RELEASE`) / `LOG_ISSUES_BRANCH`             | — / `main`                                                          |
+| `base_path`                                                    | —                                                                         | `base_path()`                                                       |
+| `cache_store`                                                  | `LOG_ISSUES_CACHE_STORE`                                                  | default store                                                       |
 
 ## Privacy
 
@@ -252,17 +252,17 @@ repository and review what a sample issue contains (`log-issues:test --dry-run`)
 
 ## Troubleshooting
 
-| symptom | check |
-|---|---|
-| Nothing happens | `php artisan log-issues:test --dry-run`: is `github-issues` in the default stack (`LOG_STACK`)? Is `APP_ENV` in `LOG_ISSUES_ENVIRONMENTS`? Is the level ≥ `LOG_ISSUES_LEVEL`? |
-| Changed `.env` but nothing changed | the config is cached: `php artisan config:clear` (or redeploy) |
-| `HTTP 401` in `log-issues:status` | token expired or revoked |
-| `HTTP 403` / `404` | token not granted *Issues: Read and write* on this exact repository, or wrong `LOG_ISSUES_REPO` |
-| `HTTP 422` | labels or body rejected; check the token can create labels (write access) |
-| "circuit breaker open" | GitHub failed 5 times in a row or rate-limited us; wait or `log-issues:status --reset` |
-| Duplicate issues after a cache flush | GitHub search indexes new issues with a short delay; duplicates are rare and stop once indexed |
-| Agent does not react | is the mention in the issue body? Does the agent's workflow run on `issues: opened`? Is the token's account allowed? |
-| Package errors | look in PHP's error log for lines starting with `[log-issues]` |
+| symptom                              | check                                                                                                                                                                         |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nothing happens                      | `php artisan log-issues:test --dry-run`: is `github-issues` in the default stack (`LOG_STACK`)? Is `APP_ENV` in `LOG_ISSUES_ENVIRONMENTS`? Is the level ≥ `LOG_ISSUES_LEVEL`? |
+| Changed `.env` but nothing changed   | the config is cached: `php artisan config:clear` (or redeploy)                                                                                                                |
+| `HTTP 401` in `log-issues:status`    | token expired or revoked                                                                                                                                                      |
+| `HTTP 403` / `404`                   | token not granted _Issues: Read and write_ on this exact repository, or wrong `LOG_ISSUES_REPO`                                                                               |
+| `HTTP 422`                           | labels or body rejected; check the token can create labels (write access)                                                                                                     |
+| "circuit breaker open"               | GitHub failed 5 times in a row or rate-limited us; wait or `log-issues:status --reset`                                                                                        |
+| Duplicate issues after a cache flush | GitHub search indexes new issues with a short delay; duplicates are rare and stop once indexed                                                                                |
+| Agent does not react                 | is the mention in the issue body? Does the agent's workflow run on `issues: opened`? Is the token's account allowed?                                                          |
+| Package errors                       | look in PHP's error log for lines starting with `[log-issues]`                                                                                                                |
 
 ## Development
 
@@ -272,9 +272,9 @@ composer analyse     # PHPStan (Larastan) level 8
 vendor/bin/pint --test
 ```
 
-## Integrate into hostdev-store
+## Integrate into laravel-project
 
-1. In `hostdev-store/composer.json` add the private VCS repository:
+1. In `laravel-project/composer.json` add the private VCS repository:
 
    ```json
    "repositories": [
@@ -285,17 +285,17 @@ vendor/bin/pint --test
 2. Require it (Composer needs read access to the private package repository —
    `composer config --global github-oauth.github.com <token>` locally; in the Dokploy build, a
    `COMPOSER_AUTH={"github-oauth":{"github.com":"<token>"}}` build-time environment variable with a
-   token that has *Contents: read* on `taba2177/log-issues-github`):
+   token that has _Contents: read_ on `taba2177/log-issues-github`):
 
    ```bash
    composer require taba2177/log-issues-github:^0.1
    ```
 
-3. In **Dokploy → hostdev-store → Environment** add:
+3. In **Dokploy → laravel-project → Environment** add:
 
    ```dotenv
    LOG_STACK=single,github-issues
-   LOG_ISSUES_REPO=taba2177/hostdev-store
+   LOG_ISSUES_REPO=taba2177/laravel-project
    LOG_ISSUES_TOKEN=github_pat_xxx
    LOG_ISSUES_MENTION=@claude
    ```

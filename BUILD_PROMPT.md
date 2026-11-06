@@ -12,7 +12,7 @@ Build a reusable, open-source Composer package **`taba2177/laravel-log-issues`**
 that turns Laravel errors into **deduplicated GitHub issues**, so an AI coding agent (Claude Code GitHub
 Action today, DeepSeek dsh-superagent or others later) can pick them up and open a pull request.
 
-It must be safe to drop into **any** Laravel app. The first consumer is `taba2177/hostdev-store`
+It must be safe to drop into **any** Laravel app. The first consumer is `taba2177/laravel-project`
 (Bagisto 2.4, Laravel 12.69, PHP 8.3, Monolog 3, Pest 3, deployed on Dokploy, logs in
 `storage/logs/laravel.log`, `config/logging.php` uses `'stack'` with `LOG_STACK=single`).
 
@@ -34,7 +34,7 @@ php artisan vendor:publish --tag=log-issues-config   # optional
 
 ```dotenv
 LOG_STACK=single,github-issues          # only this line changes logging; no edits to config/logging.php
-LOG_ISSUES_REPO=taba2177/hostdev-store
+LOG_ISSUES_REPO=taba2177/laravel-project
 LOG_ISSUES_TOKEN=github_pat_xxx         # fine-grained PAT: Issues read/write + Metadata read on ONE repo
 LOG_ISSUES_MENTION=@claude              # or the agent's GitHub login, or empty
 ```
@@ -60,6 +60,7 @@ Log::error() / unhandled exception
 ```
 
 ### Fingerprint (stable across deploys and line shifts)
+
 `sha1(exception class + normalized message + first *application* frame "relative/path.php:function")`.
 Normalize the message: replace numbers, UUIDs, hex ids, quoted strings, emails and URLs with placeholders,
 so `User 123 not found` and `User 456 not found` are the same issue. For plain `Log::error('...')`
@@ -71,6 +72,7 @@ Each issue body contains a hidden marker: `<!-- log-issues:fp=<sha1> -->`. Searc
 not know the issue number (the search API is limited to 30 req/min — cache the result).
 
 ### Throttling and noise control
+
 - Comment on an existing issue only at occurrence milestones (1, 10, 100, 1000, …) **or** at most once
   per `comment_cooldown_minutes` (default 60), aggregating "seen N times since last update".
 - `max_new_issues_per_hour` (default 10): over the limit, keep counting locally, do not create.
@@ -82,6 +84,7 @@ not know the issue number (the search API is limited to 30 req/min — cache the
   `environments` (default `['production', 'staging']`) and `sample_rate` (0–1).
 
 ### Redaction (mandatory, on by default, unit-tested)
+
 Before anything is sent: mask emails, phone numbers, card-like numbers (Luhn), IBANs, JWTs,
 `Bearer …`, `password|passwd|secret|token|api_key|authorization|cookie` keys at any depth, query
 strings of URLs, and every value of `config('app.key')`, DB passwords and the package's own token.
@@ -89,6 +92,7 @@ Never include request bodies, headers, cookies, session data or the authenticate
 only `authenticated: yes/no`. Allow extra regexes and keys via config. Truncate long strings.
 
 ### Issue format
+
 - **Title** (≤ 120 chars): `[production] QueryException: SQLSTATE[23000] Integrity constraint … (app/Services/OrderService.php:88)`
 - **Labels**: config (`['bug', 'auto-reported']`) + `env:<environment>` + optional `severity:<level>`.
 - **Body** (Markdown):
@@ -108,6 +112,7 @@ only `authenticated: yes/no`. Allow extra regexes and keys via config. Truncate 
   or milestone comments, never on every occurrence (agents bill per trigger).
 
 ## Configuration file `config/log-issues.php`
+
 Every key overridable from env where sensible: `enabled`, `repo`, `token`, `api_url` (GitHub Enterprise
 / testing), `level`, `environments`, `labels`, `mention`, `mention_on`, `agent_brief`, `queue`
 (`connection`, `name`, or `false`), `max_new_issues_per_hour`, `comment_cooldown_minutes`,
@@ -115,6 +120,7 @@ Every key overridable from env where sensible: `enabled`, `repo`, `token`, `api_
 `redact.patterns`, `release`, `branch` (default `main`), `cache_store`, `timeout_seconds` (5).
 
 ## Artisan commands
+
 - `log-issues:test {--dry-run}` — validates config, checks the token can read the repo, **warns loudly
   if the repo is public** (stack traces would be public), and creates (or prints, with `--dry-run`)
   a sample issue.
@@ -125,6 +131,7 @@ Every key overridable from env where sensible: `enabled`, `repo`, `token`, `api_
 - `log-issues:status` — shows counts per fingerprint from the cache, circuit-breaker state, last error.
 
 ## Tests (Pest + Testbench, `Http::fake()`, no real network)
+
 Cover at least: channel auto-registration; level and environment filtering; ignored exceptions;
 fingerprint stability (numbers/ids in messages, line shifts); dedupe via cache and via search marker;
 milestone and cooldown commenting; reopen/new/ignore on closed issues; new-issue hourly cap; circuit
@@ -134,6 +141,7 @@ times out; queue vs afterResponse vs sync dispatch; `scan` parsing of a real mul
 `test --dry-run` output. Aim for ≥ 90% coverage of `src/`.
 
 ## Repository deliverables
+
 - `src/`, `config/`, `tests/`, `README.md` (install, env vars, how to create a fine-grained PAT, how to
   pair with **Claude Code GitHub Action** (`@claude` mention) and with **DeepSeek dsh-superagent**
   (mention the agent's login and add the token's account to its allowed list), privacy notes,
@@ -143,16 +151,18 @@ times out; queue vs afterResponse vs sync dispatch; `scan` parsing of a real mul
   inside `src/` except where Laravel requires them in the service provider.
 
 ## Ask me (do not guess)
+
 1. Package/vendor name — default `taba2177/laravel-log-issues`; confirm before creating the repo.
 2. Whether the GitHub repo for the package is **private** (default) or public.
 3. The fine-grained PAT for the first real test (I will put it in `.env` myself; never print it).
 
 ## Definition of done
+
 1. `composer test`, `composer analyse` and `pint --test` pass locally and in CI.
 2. Pushed to `github.com/taba2177/laravel-log-issues`, tagged `v0.1.0`.
 3. `log-issues:test --dry-run` works in a fresh Laravel 12 app installed from the VCS repository.
-4. A short "integrate into hostdev-store" note at the end of README:
+4. A short "integrate into laravel-project" note at the end of README:
    `composer.json` `repositories` entry for the private VCS repo, `composer require`, the 4 env vars,
-   and `LOG_STACK=single,github-issues` in Dokploy → hostdev-store → Environment, then redeploy.
+   and `LOG_STACK=single,github-issues` in Dokploy → laravel-project → Environment, then redeploy.
 
-**Do not** modify hostdev-store in this task. Integration is a separate step after review.
+**Do not** modify laravel-project in this task. Integration is a separate step after review.
