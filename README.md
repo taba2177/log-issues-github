@@ -21,6 +21,8 @@ Log::error() / unhandled exception
 - **Agents are billed per trigger**, so the mention is written once — when the issue is created.
 
 Requirements: PHP 8.2+, Laravel 11, 12 or 13, Monolog 3. MIT licensed, no services besides GitHub.
+(Laravel 11 is past security support and current Composer refuses to install it by default; the
+package still works in existing Laravel 11 apps.)
 
 ---
 
