@@ -1,0 +1,36 @@
+[2026-11-06 10:00:00] production.ERROR: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '15' for key 'orders.PRIMARY' (Connection: mysql, SQL: insert into `orders` (`id`) values (15)) {"userId":3,"exception":"[object] (Illuminate\\Database\\QueryException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '15' for key 'orders.PRIMARY' (Connection: mysql, SQL: insert into `orders` (`id`) values (15)) at /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php:825)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php(779): Illuminate\\Database\\Connection->runQueryCallback()
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php(559): Illuminate\\Database\\Connection->run()
+#2 /var/www/html/app/Services/OrderService.php(88): Illuminate\\Database\\Connection->insert()
+#3 /var/www/html/app/Http/Controllers/OrderController.php(31): App\\Services\\OrderService->place()
+#4 [internal function]: App\\Http\\Controllers\\OrderController->store()
+#5 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): call_user_func_array()
+#6 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(169): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():178}()
+#7 /var/www/html/public/index.php(17): Illuminate\\Foundation\\Application->handleRequest()
+#8 {main}
+
+[previous exception] [object] (PDOException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '15' for key 'orders.PRIMARY' at /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php:580)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php(580): PDOStatement->execute()
+#1 {main}
+"}
+[2026-11-06 10:05:00] production.ERROR: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '16' for key 'orders.PRIMARY' (Connection: mysql, SQL: insert into `orders` (`id`) values (16)) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '16' for key 'orders.PRIMARY' (Connection: mysql, SQL: insert into `orders` (`id`) values (16)) at /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php:825)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php(779): Illuminate\\Database\\Connection->runQueryCallback()
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php(559): Illuminate\\Database\\Connection->run()
+#2 /var/www/html/app/Services/OrderService.php(92): Illuminate\\Database\\Connection->insert()
+#3 /var/www/html/app/Http/Controllers/OrderController.php(31): App\\Services\\OrderService->place()
+#4 {main}
+"}
+[2026-11-06 10:06:00] production.WARNING: Slow query detected {"ms":1200}
+[2026-11-06 10:07:00] production.ERROR: Payment gateway returned 502 for order 15 {"order":15}
+[2026-11-06 10:08:00] production.ERROR: No query results for model [App\Models\Order] 99 {"exception":"[object] (Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException(code: 0): No query results for model [App\\Models\\Order] 99 at /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php:640)
+[stacktrace]
+#0 {main}
+"}
+[2026-11-06 10:09:00] local.ERROR: Only on a laptop {"exception":"[object] (RuntimeException(code: 0): Only on a laptop at /var/www/html/app/Foo.php:3)
+[stacktrace]
+#0 {main}
+"}
+[2026-11-06 10:10:00] production.CRITICAL: Payment gateway returned 503 for order 99

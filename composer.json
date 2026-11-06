@@ -1,0 +1,64 @@
+{
+    "name": "taba2177/log-issues-github",
+    "description": "Turn Laravel production errors into deduplicated, redacted GitHub issues that an AI coding agent can pick up and fix.",
+    "keywords": ["laravel", "logging", "monolog", "github", "issues", "error-tracking", "ai-agent"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "taba2177",
+            "homepage": "https://github.com/taba2177"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.8",
+        "illuminate/bus": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/cache": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/console": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/contracts": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/http": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/log": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/queue": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+        "monolog/monolog": "^3.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.18",
+        "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
+        "pestphp/pest": "^3.7 || ^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0 || ^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Taba\\LogIssues\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Taba\\LogIssues\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "test-coverage": "pest --coverage",
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "format": "pint"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Taba\\LogIssues\\LogIssuesServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
